@@ -1,0 +1,38 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_excel(r"V:\GitHub\SalesForecastDashboard\online_retail_II.xlsx", engine="openpyxl")
+
+# Display dataset information
+print(df.head())
+print(df.info())
+
+# Drop rows with missing CustomerID or Description
+df = df.dropna(subset=['Customer ID', 'Description'])
+
+# Remove rows with negative or zero Quantity or UnitPrice
+df = df[(df['Quantity'] > 0) & (df['Price'] > 0)]
+
+# Convert date column
+df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
+
+df['TotalSales'] = df['Quantity'] * df['Price']
+
+# Timeseries data group by day
+daily_sales = df.groupby(df['InvoiceDate'].dt.date)['TotalSales'].sum().reset_index()
+
+# Convert to datetime index
+daily_sales.columns = ['Date', 'TotalSales']
+daily_sales['Date'] = pd.to_datetime(daily_sales['Date'])
+daily_sales = daily_sales.set_index('Date')
+
+# Optional: fill missing dates (non-trading days) with 0
+daily_sales = daily_sales.asfreq('D', fill_value=0)
+
+plt.figure(figsize=(12, 6))
+plt.plot(daily_sales.index, daily_sales['TotalSales'])
+plt.title('Daily Sales Over Time')
+plt.xlabel('Date')
+plt.ylabel('Total Sales (£)')
+plt.tight_layout()
+plt.show()

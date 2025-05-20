@@ -1,1 +1,2 @@
-# SalesForecastDashboard
+# Algorithms
+A collection of algorithms and data structures
